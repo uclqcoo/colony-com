@@ -124,11 +124,11 @@ def run_cross_setup():
 
     sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
 
-    if os.path.isdir(os.getcwd() + "/simulation_pdfs") is False:
+    if os.path.isdir(os.getcwd() + "/output_cross") is False:
         print("ciao")
-        os.mkdir(os.getcwd() + "/simulation_pdfs")
+        os.mkdir(os.getcwd() + "/output_cross")
 
-    with PdfPages("simulation_pdfs/simulation-cross-" + time.strftime("%H%M%S") + ".pdf") as pdf:
+    with PdfPages("output_cross/simulation-cross-" + time.strftime("%H%M%S") + ".pdf") as pdf:
 
         for i in np.arange(0, 901, 120):
             t = int(i / 60)
@@ -198,14 +198,13 @@ def run_simple_setup():
 
     sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
 
-    if os.path.isdir(os.getcwd() + "/simulation_pdfs") is False:
-        print("ciao")
-        os.mkdir(os.getcwd() + "/simulation_pdfs")
+    if os.path.isdir(os.getcwd() + "/output_simple") is False:
+        os.mkdir(os.getcwd() + "/output_simple")
 
 
     tp = np.arange(0, 18, 2)    
         
-    with PdfPages("simulation_pdfs/simulation-simple.pdf") as pdf:    
+    with PdfPages("output_simple/simulation-simple.pdf") as pdf:    
 
         for i in np.arange(0,tp.size):        
             f1 = multi_plots(sim_ivp[:, :, :, tp[i]*60], str(tp[i]) + " hours")
@@ -213,7 +212,7 @@ def run_simple_setup():
             # plt.show()
             plt.close()
     
-    with PdfPages("simulation_pdfs/timecourse-simple.pdf") as pdf:
+    with PdfPages("output_simple/timecourse-simple.pdf") as pdf:
 
         # calculate statistics over time
       
@@ -363,16 +362,16 @@ def run_simple(tp, ara, setup, outputdir):
 def make_dist_plots():
     
     
-    if os.path.isdir(os.getcwd() + "/simulation_dist") is False:
-        os.mkdir(os.getcwd() + "/simulation_dist")
+    if os.path.isdir(os.getcwd() + "/output_dist") is False:
+        os.mkdir(os.getcwd() + "/output_dist")
 
     tp = np.arange(0, 18, 2) 
-    x1 = run_simple(tp, 5, 1, "simulation_dist")
-    x2 = run_simple(tp, 5, 2, "simulation_dist")
-    x3 = run_simple(tp, 5, 3, "simulation_dist")
+    x1 = run_simple(tp, 5, 1, "output_dist")
+    x2 = run_simple(tp, 5, 2, "output_dist")
+    x3 = run_simple(tp, 5, 3, "output_dist")
     
    
-    with PdfPages("simulation_dist/timecourse.pdf") as pdf:
+    with PdfPages("output_dist/timecourse.pdf") as pdf:
         plt.plot( tp, x1 )
         plt.plot( tp, x2 )
         plt.plot( tp, x3 )
@@ -383,9 +382,9 @@ def make_dist_plots():
     
 
 def main():
-    #run_cross_setup()
+    run_cross_setup()
 
-    #run_simple_setup()
+    run_simple_setup()
 
     make_dist_plots()
 
