@@ -1,48 +1,64 @@
 from functionsDiffusion import *
 
+# fixed global parameters
+x_s = 20  # synthase production rate(au/min)
+x_a = 0.1
+x_g = .1
+lambda_a = 2.3  # hill coeff ahl2
+K_a = 40  # M and M constant for ahl2
+D = 0.03  # AHL diffusion coeff (#mm2/min)
+D_a = .3
+w = 0.75
+rho_n = 3
+rc = 6 * 0.0001
+Dc = 0.0001
+rho = 5 * 0.001
 
-def main():
-    def model_small(t, U_flat, shape):
-        x_s = 20  # synthase production rate(au/min)
-        x_a = 0.1
-        x_g = .1
-        lambda_a = 2.3  # hill coeff ahl2
-        K_a = 40  # M and M constant for ahl2
-        D = 0.03  # AHL diffusion coeff (#mm2/min)
-        D_a = .3
-        w = 0.75
-        rho_n = 3
-        rc = 6 * 0.0001
-        Dc = 0.0001
-        rho = 5 * 0.001
+lambda_n = 2.0
+K_n = 80
 
-        U_grid = U_flat.reshape(shape)
-        N = hill(U_grid[2], 80, 2.0)
+def model_small(t, U_flat, shape):
+    U_grid = U_flat.reshape(shape)
+
+    N = hill(U_grid[2], K_n, lambda_n)
         
-        LuxI_ficks = ficks(U_grid[0], w)
-        arabinose_ficks = ficks(U_grid[1], w)
-        n_ficks = ficks(U_grid[2], w)
-        S_ficks = ficks(U_grid[3], w)
-        c6_ficks = ficks(U_grid[4], w)
-        R_ficks = ficks(U_grid[5], w)
-        gfp = ficks(U_grid[6], w)
+    LuxI_ficks      = ficks(U_grid[0], w)
+    arabinose_ficks = ficks(U_grid[1], w)
+    n_ficks         = ficks(U_grid[2], w)
+    S_ficks         = ficks(U_grid[3], w)
+    c6_ficks        = ficks(U_grid[4], w)
+    R_ficks         = ficks(U_grid[5], w)
 
-        S = Dc * S_ficks + rc * N * U_grid[3]
-        R = Dc * R_ficks + rc * N * U_grid[5]
-        LuxI = x_s * N * hill(U_grid[1], lambda_a, K_a) * U_grid[3]
-        c6 = D_a * c6_ficks + (x_a * U_grid[0]) - rho * U_grid[4]
-        arabinose = D * arabinose_ficks
-        n = D * n_ficks - rho_n * N * (U_grid[3] + U_grid[5])
-        gfp = x_g * N * hill(U_grid[4], lambda_a, K_a) * U_grid[5]
+    S         = Dc * S_ficks + rc * N * U_grid[3]
+    R         = Dc * R_ficks + rc * N * U_grid[5]
+    LuxI      = x_s * N * hill(U_grid[1], lambda_a, K_a) * U_grid[3]
+    c6        = D_a * c6_ficks + (x_a * U_grid[0]) - rho * U_grid[4]
+    arabinose = D * arabinose_ficks
+    n         = D * n_ficks - rho_n * N * (U_grid[3] + U_grid[5])
+    gfp       = x_g * N * hill(U_grid[4], lambda_a, K_a) * U_grid[5]
 
-        return(np.concatenate((LuxI.flatten(), arabinose.flatten(), n.flatten(),
-                               S.flatten(), c6.flatten(), R.flatten(),
-                               gfp.flatten())))
+    return(np.concatenate((LuxI.flatten(),
+                           arabinose.flatten(),
+                           n.flatten(),
+                           S.flatten(),
+                           c6.flatten(),
+                           R.flatten(),
+                           gfp.flatten()) ) )
 
-    grid_size = 900
-    U = np.zeros(grid_size * 7)
-    U = U.reshape(7, 30, 30)
+def run_cross_setup():
+    # This is Luca's orginal function simulating a single setup of the form
 
+    #             R
+    #             R
+    #             R
+    #       R R R S R R R
+    #             R
+    #             R
+    #             R
+    
+    # setup 7 concentrations on a grid 30 x 30
+    U = np.zeros([7,30,30])
+    
     shape = U.shape
     size = U.size
 
@@ -117,6 +133,10 @@ def main():
 
     end_time = time.time()
     print(end_time - start_time)
+
+
+def main():
+    run_cross_setup()
 
 
 main()

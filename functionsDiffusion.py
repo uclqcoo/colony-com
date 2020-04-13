@@ -21,10 +21,6 @@ def hill(s, K, lam):
     return(h)
 
 
-#def nutrient(N_matrix):
-#    return (hill(N_matrix, 80, 2))
-
-
 def multi_plots(sim, title=""):
     f, ax = plt.subplots(3, 3, sharex=True, sharey=False, figsize=(15, 15))
 
