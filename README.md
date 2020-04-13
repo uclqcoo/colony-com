@@ -1,4 +1,4 @@
 # colony-com
-Diffusion model of a system where a sender strains produces AHL in the presence of arabinose. AHL diffuses and activates GFP production in a receiver strain
+Diffusion model of a system where sender strains produce AHL in the presence of arabinose. AHL diffuses and activates GFP production in receiver strains
 
 ## Getting Started
