@@ -17,8 +17,8 @@ def main():
         rho = 5 * 0.001
 
         U_grid = U_flat.reshape(shape)
-        N = nutrient(U_grid[2])
-
+        N = hill(U_grid[2], 80, 2.0)
+        
         LuxI_ficks = ficks(U_grid[0], w)
         arabinose_ficks = ficks(U_grid[1], w)
         n_ficks = ficks(U_grid[2], w)

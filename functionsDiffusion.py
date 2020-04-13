@@ -21,8 +21,8 @@ def hill(s, K, lam):
     return(h)
 
 
-def nutrient(N_matrix):
-    return (hill(N_matrix, 80, 2))
+#def nutrient(N_matrix):
+#    return (hill(N_matrix, 80, 2))
 
 
 def multi_plots(sim, title=""):
