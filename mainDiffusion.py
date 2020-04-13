@@ -1,21 +1,20 @@
 from functionsDiffusion import *
 
-# fixed global parameters
-x_s = 20  # synthase production rate(au/min)
-x_a = 0.1
-x_g = .1
-lambda_a = 2.3  # hill coeff ahl2
-K_a = 40  # M and M constant for ahl2
-D = 0.03  # AHL diffusion coeff (#mm2/min)
-D_a = .3
-w = 0.75
-rho_n = 3
-rc = 6 * 0.0001
-Dc = 0.0001
-rho = 5 * 0.001
-
-lambda_n = 2.0
-K_n = 80
+# fixed global parameters from Doong et. al. 2017
+x_s       = 20              # synthase production rate(au/min)
+x_a       = 0.1
+x_g       = .1
+lambda_a  = 2.3             # hill coeff ahl2
+K_a       = 40              # M and M constant for ahl2
+D         = 0.03            # AHL diffusion coeff (#mm2/min)
+D_a       = 0.3
+w         = 0.75
+rho_n     = 3
+rc        = 6 * 0.0001
+Dc        = 0.0001
+rho       = 5 * 0.001
+lambda_n  = 2.0
+K_n       = 80
 
 def model_small(t, U_flat, shape):
     U_grid = U_flat.reshape(shape)
