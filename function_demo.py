@@ -8,7 +8,7 @@ lambda_a  = 2.3             # hill coeff ahl2
 K_a       = 40              # M and M constant for ahl2
 D         = 0.03            # AHL diffusion coeff (#mm2/min)
 D_a       = 0.3
-w         = 0.75  # dx, dy
+
 rho_n     = 3
 rc        = 6 * 0.0001
 Dc        = 0.0001
@@ -52,6 +52,8 @@ def model_small(t, U_flat, shape):
                            R.flatten(),
                            gfp.flatten()) ) )
 
+
+w = 0.75  # dx, dy #TODO: this should probably be an argument to model small so it can be set in the same place as n_rows, n_cols
 def run_cross_setup():
     # This is Luca's orginal function simulating a single setup of the form:
     #             R
@@ -62,54 +64,64 @@ def run_cross_setup():
     #             R
     #             R
     
+
+    # If you double n_rows, half w to get the same sized grid
+
+    n_rows = n_cols = 30 #with w = 0.75 gives 20mm x20mm
+
+    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
+
+    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
+
+
     # setup 7 concentrations on a grid 30 x 30
-    U = np.zeros([7,30,30])
+    U = np.zeros([7,n_rows,n_cols])
     
     shape = U.shape
     size = U.size
 
-    U[2] = 100
+    U[2] = 100 # set nutrients
 
-    U[3][14, 14] = 0.5
-    U[3][14, 15] = 0.5
-    U[3][15, 14] = 0.5
-    U[3][15, 15] = 0.5
 
-    U[1][14, 14] = 5
-    U[1][14, 15] = 5
-    U[1][15, 14] = 5
-    U[1][15, 15] = 5
+    #sender, positions are now in mm by multiplying by 0.75
+    sender_pos = [[10.875, 10.875]]
+    sender_radius = 0.75
+    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
 
-    i = 0
-    for j in np.arange(1, 4):
-        U[5][11 - i, 14] = 0.5
-        U[5][11 - i, 15] = 0.5
-        U[5][12 - i, 14] = 0.5
-        U[5][12 - i, 15] = 0.5
-        i = i + 3
-    i = 0
-    for j in np.arange(1, 4):
-        U[5][17 + i, 14] = 0.5
-        U[5][17 + i, 15] = 0.5
-        U[5][18 + i, 14] = 0.5
-        U[5][18 + i, 15] = 0.5
-        i = i + 3
+    #uncomment these lines to see the vertex assignment
+    '''
+    sender_numbers, sender_indicators = assign_vertices(all_vertex_positions, sender_pos, sender_radius)
+    print(sender_indicators.reshape(n_rows, n_cols))
+    '''
+    #set initial sneder conc
 
-    i = 0
-    for j in np.arange(1, 4):
-        U[5][14, 11 - i] = 0.5
-        U[5][14, 12 - i] = 0.5
-        U[5][15, 11 - i] = 0.5
-        U[5][15, 12 - i] = 0.5
-        i = i + 3
+    rows = sender_coordinates[:,0]
+    cols = sender_coordinates[:, 1]
+    U[3][rows, cols] = 0.5
 
-    i = 0
-    for j in np.arange(1, 4):
-        U[5][14, 17 + i] = 0.5
-        U[5][14, 18 + i] = 0.5
-        U[5][15, 17 + i] = 0.5
-        U[5][15, 18 + i] = 0.5
-        i = i + 3
+    #set initial arabinose conc
+    U[1][rows, cols] = 5
+
+
+    #recievers
+    dist = 0.75
+    receiver_pos = [[8.625 - i*dist  ,10.875]  for i in range(0,9,3)]
+    receiver_pos.extend([[13.125 + i*dist  ,10.875]  for i in range(0,9,3)])
+    receiver_pos.extend([[10.875, 8.625 - i * dist] for i in range(0,9,3)])
+    receiver_pos.extend([[10.875, 13.125 + i * dist] for i in range(0,9,3)])
+    receiver_radius = sender_radius
+
+    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
+    # uncomment these lines to see the vertex assignment
+    '''
+    receiver_numbers, receiver_indicators = assign_vertices(all_vertex_positions, receiver_pos, receiver_radius)
+    print(receiver_indicators.reshape(n_rows, n_cols))
+    '''
+
+
+    rows = receiver_coordinates[:, 0]
+    cols = receiver_coordinates[:, 1]
+    U[5][rows, cols] = 0.5
 
     t_final = 1000  # mins
     dt = .1
@@ -122,13 +134,13 @@ def run_cross_setup():
     sim_ivp = solve_ivp(model_small, [0, t_final], U_init,
                         t_eval=t, args=(shape,))
 
-    sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
+    sim_ivp = sim_ivp.y.reshape(7, n_rows, n_cols, t_points)
 
-    if os.path.isdir(os.getcwd() + "/output_cross") is False:
+    if os.path.isdir(os.getcwd() + "/function_demo/output_cross") is False:
         print("ciao")
-        os.mkdir(os.getcwd() + "/output_cross")
+        os.makedirs(os.getcwd() + "/function_demo/output_cross")
 
-    with PdfPages("output_cross/simulation-cross-" + time.strftime("%H%M%S") + ".pdf") as pdf:
+    with PdfPages("function_demo/output_cross/simulation-cross-" + time.strftime("%H%M%S") + ".pdf") as pdf:
 
         for i in np.arange(0, 901, 120):
             t = int(i / 60)
@@ -145,9 +157,16 @@ def run_simple_setup():
     # This simulates a single sender and receiver pair
     # Also extracts time information by summing over colony locations
 
+    n_rows = n_cols = 30
+
+    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
+
+    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
+
+
     # setup 7 concentrations on a grid 30 x 30
-    U = np.zeros([7,30,30])
-    
+    U = np.zeros([7,n_rows,n_cols])
+
     shape = U.shape
     size = U.size
 
@@ -162,28 +181,31 @@ def run_simple_setup():
     # Nutrients
     U[2] = 100
 
-    # Senders
-    U[3][14, 14] = 0.5
-    U[3][14, 15] = 0.5
-    U[3][15, 14] = 0.5
-    U[3][15, 15] = 0.5
+    # sender, positions are now in mm
+    sender_pos = [[10.875, 10.875]]
+    sender_radius = 0.75
+    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
 
-    # Arabinose
-    U[1][14, 14] = 5
-    U[1][14, 15] = 5
-    U[1][15, 14] = 5
-    U[1][15, 15] = 5
+    # set initial sneder conc
+    rows = sender_coordinates[:, 0]
+    cols = sender_coordinates[:, 1]
+    U[3][rows, cols] = 0.5
 
-    # Receivers
-    print("Receivers at:")
-    i = 0
-    for j in np.arange(1, 2):
-        U[5][11 - i, 14] = 0.5
-        U[5][11 - i, 15] = 0.5
-        U[5][12 - i, 14] = 0.5
-        U[5][12 - i, 15] = 0.5
-        print( "(",11 - i, 14,")",  "(",11 - i, 15,")", "(",12 - i, 14,")",  "(",12 - i, 15,")" )
-        i = i + 3
+    # set initial arabinose conc
+    U[1][rows, cols] = 5
+
+
+
+    # reciever
+    receiver_pos = [[8.625, 10.875]]
+
+    receiver_radius = sender_radius
+
+    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
+
+    rows = receiver_coordinates[:, 0]
+    cols = receiver_coordinates[:, 1]
+    U[5][rows, cols] = 0.5
 
     t_final = 960  # mins
     dt = .1
@@ -198,24 +220,24 @@ def run_simple_setup():
 
     sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
 
-    if os.path.isdir(os.getcwd() + "/output_simple") is False:
-        os.mkdir(os.getcwd() + "/output_simple")
+    if os.path.isdir(os.getcwd() + "/function_demo/output_simple") is False:
+        os.mkdir(os.getcwd() + "/function_demo/output_simple")
 
 
-    tp = np.arange(0, 18, 2)    
-        
-    with PdfPages("output_simple/simulation-simple.pdf") as pdf:
+    tp = np.arange(0, 18, 2)
 
-        for i in np.arange(0,tp.size):        
+    with PdfPages("function_demo/output_simple/simulation-simple.pdf") as pdf:
+
+        for i in np.arange(0,tp.size):
             f1 = multi_plots(sim_ivp[:, :, :, tp[i]*60], str(tp[i]) + " hours")
             pdf.savefig()
             # plt.show()
             plt.close()
-    
-    with PdfPages("output_simple/timecourse-simple.pdf") as pdf:
+
+    with PdfPages("function_demo/output_simple/timecourse-simple.pdf") as pdf:
 
         # calculate statistics over time
-      
+
         # coordinates to sum over
         coords = []
         for xi in range(10,14):
@@ -224,15 +246,15 @@ def run_simple_setup():
 
         print("Outputs at:")
         print(coords)
-        
+
         # GFP
         x_gfp_t = np.zeros(tp.size)
-         
+
         for i in np.arange(0,tp.size):
             #x_gfp_t[i] = sim_ivp[6, 11, 14, tp[i]*60]
             for jc in coords:
                 x_gfp_t[i] += sim_ivp[6, jc[0], jc[1], tp[i]*60]
-    
+
         plt.plot( tp, x_gfp_t )
         plt.xlabel("time (hours)")
         plt.ylabel("GFP")
@@ -241,18 +263,18 @@ def run_simple_setup():
 
         # R (amount of receiver strain)
         x_r_t = np.zeros(tp.size)
-       
+
         for i in np.arange(0,tp.size):
             for jc in coords:
-                #print( "\t", sim_ivp[5, jc[0], jc[1], tp[i]*60]) 
+                #print( "\t", sim_ivp[5, jc[0], jc[1], tp[i]*60])
                 x_r_t[i] += sim_ivp[5, jc[0], jc[1], tp[i]*60]
-    
+
         plt.plot( tp, x_r_t )
         plt.xlabel("time (hours)")
         plt.ylabel("Receiver")
         pdf.savefig()
         plt.close()
-    
+
     end_time = time.time()
     print(end_time - start_time)
 
@@ -261,9 +283,14 @@ def run_simple(tp, ara, setup, outputdir):
     # this version of the simple setup takes in parameters so that it can be run repeatedly
     # it also contains three different sender arrangements all surrounding a single receiver
 
+    n_rows = n_cols = 30  # with w = 0.75 gives 20mm x20mm
+
+    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
+
+    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
     # setup 7 concentrations on a grid 30 x 30
-    U = np.zeros([7,30,30])
-    
+    U = np.zeros([7,n_rows,n_cols])
+
     shape = U.shape
     size = U.size
 
@@ -272,51 +299,38 @@ def run_simple(tp, ara, setup, outputdir):
 
     # Arabinose
     U[1] = ara
-    
+
     # Senders
     if setup == 1:
-        U[3][14, 14] = 0.5
-        U[3][14, 15] = 0.5
-        U[3][15, 14] = 0.5
-        U[3][15, 15] = 0.5
-        
-    if setup == 2:
-        U[3][14, 13] = 0.5
-        U[3][14, 14] = 0.5
-        U[3][15, 13] = 0.5
-        U[3][15, 14] = 0.5
+        sender_pos = [[10.875, 10.875]]
 
-        U[3][14, 16] = 0.5
-        U[3][14, 17] = 0.5
-        U[3][15, 16] = 0.5
-        U[3][15, 17] = 0.5
+    if setup == 2:
+        sender_pos = [[10.875, 10.125], [10.875, 12.375]]
 
     if setup == 3:
-        U[3][14, 11] = 0.5
-        U[3][14, 12] = 0.5
-        U[3][15, 11] = 0.5
-        U[3][15, 12] = 0.5
 
-        U[3][14, 14] = 0.5
-        U[3][14, 15] = 0.5
-        U[3][15, 14] = 0.5
-        U[3][15, 15] = 0.5
-        
-        U[3][14, 17] = 0.5
-        U[3][14, 18] = 0.5
-        U[3][15, 17] = 0.5
-        U[3][15, 18] = 0.5
+        sender_pos = [[8.625, 10.875], [10.875, 10.875], [10.875, 12.375]]
 
-    # Receivers
-    print("Receivers at:")
-    i = 0
-    for j in np.arange(1, 2):
-        U[5][11 - i, 14] = 0.5
-        U[5][11 - i, 15] = 0.5
-        U[5][12 - i, 14] = 0.5
-        U[5][12 - i, 15] = 0.5
-        print( "(",11 - i, 14,")",  "(",11 - i, 15,")", "(",12 - i, 14,")",  "(",12 - i, 15,")" )
-        i = i + 3
+
+    sender_radius = 0.75
+    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
+
+    # set initial sneder conc
+    rows = sender_coordinates[:, 0]
+    cols = sender_coordinates[:, 1]
+    U[3][rows, cols] = 0.5
+
+    # set initial arabinose conc
+    U[1][rows, cols] = 5
+
+    # reciever
+    receiver_pos = [[8.625 , 10.875]]
+    receiver_radius = sender_radius
+    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
+
+    rows = receiver_coordinates[:, 0]
+    cols = receiver_coordinates[:, 1]
+    U[5][rows, cols] = 0.5
 
     t_final = tp[len(tp)-1]*60  # mins
     dt = .1
@@ -331,16 +345,16 @@ def run_simple(tp, ara, setup, outputdir):
 
     sim_ivp = solve_ivp(model_small, [0, t_final], U_init,
                         t_eval=t, args=(shape,))
-    
+
     sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
 
-    with PdfPages(outputdir+"/simulation_"+str(setup)+".pdf") as pdf:    
+    with PdfPages(outputdir+"/simulation_"+str(setup)+".pdf") as pdf:
 
-        for i in np.arange(0,tp.size):        
+        for i in np.arange(0,tp.size):
             f1 = multi_plots(sim_ivp[:, :, :, tp[i]*60], str(tp[i]) + " hours")
             pdf.savefig()
             plt.close()
-           
+
     # coordinates to sum over
     coords = []
     for xi in range(10,14):
@@ -349,29 +363,27 @@ def run_simple(tp, ara, setup, outputdir):
 
     print("Outputs at:")
     print(coords)
-        
+
     # GFP
     x_gfp_t = np.zeros(tp.size)
-         
+
     for i in np.arange(0,tp.size):
         for jc in coords:
             x_gfp_t[i] += sim_ivp[6, jc[0], jc[1], tp[i]*60]
-    
+
     return x_gfp_t
 
 def make_dist_plots():
-    
-    
-    if os.path.isdir(os.getcwd() + "/output_dist") is False:
-        os.mkdir(os.getcwd() + "/output_dist")
+    if os.path.isdir(os.getcwd() + "/function_demo/output_dist") is False:
+        os.mkdir(os.getcwd() + "/function_demo/output_dist")
 
-    tp = np.arange(0, 18, 2) 
-    x1 = run_simple(tp, 5, 1, "output_dist")
-    x2 = run_simple(tp, 5, 2, "output_dist")
-    x3 = run_simple(tp, 5, 3, "output_dist")
-    
-   
-    with PdfPages("output_dist/timecourse.pdf") as pdf:
+    tp = np.arange(0, 18, 2)
+    x1 = run_simple(tp, 5, 1, "function_demo/output_dist")
+    x2 = run_simple(tp, 5, 2, "function_demo/output_dist")
+    x3 = run_simple(tp, 5, 3, "function_demo/output_dist")
+
+
+    with PdfPages("function_demo/output_dist/timecourse.pdf") as pdf:
         plt.plot( tp, x1 )
         plt.plot( tp, x2 )
         plt.plot( tp, x3 )
@@ -379,7 +391,7 @@ def make_dist_plots():
         plt.ylabel("GFP")
         pdf.savefig()
         plt.close()
-    
+
 
 def main():
     run_cross_setup()
@@ -388,8 +400,8 @@ def main():
 
     make_dist_plots()
 
-    
 
-    
+
+
 
 main()
