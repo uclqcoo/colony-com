@@ -309,7 +309,7 @@ def run_simple(tp, ara, setup, outputdir):
 
     if setup == 3:
 
-        sender_pos = [[8.625, 10.875], [10.875, 10.875], [10.875, 12.375]]
+        sender_pos = [[ 10.875,8.625], [10.875, 10.875], [10.875, 13.125]]
 
 
     sender_radius = 0.75
