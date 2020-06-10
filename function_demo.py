@@ -1,5 +1,11 @@
 from functionsDiffusion import *
 
+
+'''
+Demo of the simulations in mainDiffusion.py using the new functions
+'''
+
+
 # fixed global parameters from Doong et. al. 2017
 x_s       = 20              # synthase production rate(au/min)
 x_a       = 0.1
@@ -69,11 +75,6 @@ def run_cross_setup():
 
     n_rows = n_cols = 30 #with w = 0.75 gives 20mm x20mm
 
-    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
-
-    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
-
-
     # setup 7 concentrations on a grid 30 x 30
     U = np.zeros([7,n_rows,n_cols])
     
@@ -84,15 +85,11 @@ def run_cross_setup():
 
 
     #sender, positions are now in mm by multiplying by 0.75
-    sender_pos = [[10.875, 10.875]]
+    sender_pos = [[10.875, 10.875]] # can do multiple senders by adding more coords here
     sender_radius = 0.75
-    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
+    sender_coordinates = get_node_coordinates(sender_pos, sender_radius, n_rows, n_cols, w)
 
-    #uncomment these lines to see the vertex assignment
-    '''
-    sender_numbers, sender_indicators = assign_vertices(all_vertex_positions, sender_pos, sender_radius)
-    print(sender_indicators.reshape(n_rows, n_cols))
-    '''
+
     #set initial sneder conc
 
     rows = sender_coordinates[:,0]
@@ -111,13 +108,7 @@ def run_cross_setup():
     receiver_pos.extend([[10.875, 13.125 + i * dist] for i in range(0,9,3)])
     receiver_radius = sender_radius
 
-    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
-    # uncomment these lines to see the vertex assignment
-    '''
-    receiver_numbers, receiver_indicators = assign_vertices(all_vertex_positions, receiver_pos, receiver_radius)
-    print(receiver_indicators.reshape(n_rows, n_cols))
-    '''
-
+    receiver_coordinates = get_node_coordinates(receiver_pos, receiver_radius, n_rows, n_cols, w)
 
     rows = receiver_coordinates[:, 0]
     cols = receiver_coordinates[:, 1]
@@ -159,9 +150,6 @@ def run_simple_setup():
 
     n_rows = n_cols = 30
 
-    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
-
-    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
 
 
     # setup 7 concentrations on a grid 30 x 30
@@ -184,7 +172,7 @@ def run_simple_setup():
     # sender, positions are now in mm
     sender_pos = [[10.875, 10.875]]
     sender_radius = 0.75
-    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
+    sender_coordinates = get_node_coordinates( sender_pos, sender_radius, n_rows, n_cols, w)
 
     # set initial sneder conc
     rows = sender_coordinates[:, 0]
@@ -201,7 +189,7 @@ def run_simple_setup():
 
     receiver_radius = sender_radius
 
-    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
+    receiver_coordinates = get_node_coordinates(receiver_pos, receiver_radius, n_rows, n_cols, w)
 
     rows = receiver_coordinates[:, 0]
     cols = receiver_coordinates[:, 1]
@@ -218,7 +206,7 @@ def run_simple_setup():
     sim_ivp = solve_ivp(model_small, [0, t_final], U_init,
                         t_eval=t, args=(shape,))
 
-    sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
+    sim_ivp = sim_ivp.y.reshape(7, n_rows, n_cols, t_points)
 
     if os.path.isdir(os.getcwd() + "/function_demo/output_simple") is False:
         os.mkdir(os.getcwd() + "/function_demo/output_simple")
@@ -313,7 +301,7 @@ def run_simple(tp, ara, setup, outputdir):
 
 
     sender_radius = 0.75
-    sender_coordinates = get_node_coordinates(all_vertex_positions, sender_pos, sender_radius, n_rows, n_cols)
+    sender_coordinates = get_node_coordinates(sender_pos, sender_radius, n_rows, n_cols, w)
 
     # set initial sneder conc
     rows = sender_coordinates[:, 0]
@@ -326,7 +314,7 @@ def run_simple(tp, ara, setup, outputdir):
     # reciever
     receiver_pos = [[8.625 , 10.875]]
     receiver_radius = sender_radius
-    receiver_coordinates = get_node_coordinates(all_vertex_positions, receiver_pos, receiver_radius, n_rows, n_cols)
+    receiver_coordinates = get_node_coordinates(receiver_pos, receiver_radius, n_rows, n_cols, w)
 
     rows = receiver_coordinates[:, 0]
     cols = receiver_coordinates[:, 1]
@@ -346,7 +334,7 @@ def run_simple(tp, ara, setup, outputdir):
     sim_ivp = solve_ivp(model_small, [0, t_final], U_init,
                         t_eval=t, args=(shape,))
 
-    sim_ivp = sim_ivp.y.reshape(7, 30, 30, t_points)
+    sim_ivp = sim_ivp.y.reshape(7, n_rows, n_cols, t_points)
 
     with PdfPages(outputdir+"/simulation_"+str(setup)+".pdf") as pdf:
 

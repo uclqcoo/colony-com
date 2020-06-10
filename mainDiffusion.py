@@ -369,8 +369,7 @@ def make_dist_plots():
     x1 = run_simple(tp, 5, 1, "output_dist")
     x2 = run_simple(tp, 5, 2, "output_dist")
     x3 = run_simple(tp, 5, 3, "output_dist")
-    
-   
+
     with PdfPages("output_dist/timecourse.pdf") as pdf:
         plt.plot( tp, x1 )
         plt.plot( tp, x2 )

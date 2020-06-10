@@ -168,7 +168,8 @@ def assign_vertices(vertex_positions, node_positions, node_radius):
 
     return vertex_numbers, indicators
 
-def get_node_coordinates(vertex_positions, node_positions, node_radius, n_rows, n_cols):
+# this is the only one you really need to use
+def get_node_coordinates(node_positions, node_radius, n_rows, n_cols, w):
     '''
        gets the coordinates of the vertices inside the nodes with position node_positions with radius: node radius.
 
@@ -181,7 +182,13 @@ def get_node_coordinates(vertex_positions, node_positions, node_radius, n_rows, 
 
         NOTE: this assigns position based on real life position, not the grid coordinates i.e the distance in mm
        '''
-    vertex_numbers, vertex_indicators = assign_vertices(vertex_positions, node_positions, node_radius)
+
+
+    # use the individual functions if repeating these two lines for each node type is too slow
+    all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
+    all_vertex_positions = get_vertex_positions(all_vertex_numbers, n_rows, n_cols, w)
+
+    vertex_numbers, vertex_indicators = assign_vertices(all_vertex_positions, node_positions, node_radius)
     coordinates = get_vertex_coordinates(vertex_numbers, n_rows, n_cols)
 
     return coordinates
