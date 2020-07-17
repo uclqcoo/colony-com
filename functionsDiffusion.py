@@ -13,15 +13,28 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 
-
 def ficks(s, w):
     return(laplace(s) / np.power(w, 2))
 
 
 def hill(s, K, lam):
+    s[s < 0] = 0
     h = s**lam / (K**lam + s**lam)
     return(h)
 
+# Results from Clemens' data use these parameters in your model with the hill_AHL function for AHL production
+kd = 17.8
+n = 1.75
+min =  4230
+max = 54096
+def hill_AHL(conc, n, kd, min, max):
+    # get rid of the very small negatvie values
+    conc[conc<0] = 0
+
+
+    h = (min + (max-min)*(conc**n/(kd**n + conc**n)))/max
+
+    return h
 
 def multi_plots(sim, title=""):
     f, ax = plt.subplots(3, 3, sharex=True, sharey=False, figsize=(15, 15))
@@ -66,6 +79,63 @@ def multi_plots(sim, title=""):
     im7 = ax[2, 0].imshow(sim[2], interpolation="none", cmap=cm.viridis, vmin=0, vmax=100)
     ax[2, 0].set_title("Nutrients")
     divider = make_axes_locatable(ax[2, 0])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im7, cax=cax, shrink=0.8)
+
+    ax[2, 1].axis('off')
+    ax[2, 2].axis('off')
+
+    return(f)
+
+def plot_nn(sim, title=""):
+    f, ax = plt.subplots(3, 3, sharex=True, sharey=False, figsize=(15, 15))
+
+    f.suptitle(title, fontsize=40)
+    im1 = ax[0, 0].imshow(sim[3], interpolation="none", cmap=cm.viridis, vmin=0, vmax=1)
+    ax[0, 0].set_title("Input Layer")
+    divider = make_axes_locatable(ax[0, 0])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im1, cax=cax, shrink=0.8)
+
+    im2 = ax[0, 1].imshow(sim[5], interpolation="none", cmap=cm.viridis, vmin=0, vmax=1)
+    ax[0, 1].set_title("Hidden Layer")
+    divider = make_axes_locatable(ax[0, 1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im2, cax=cax, shrink=0.8)
+
+    im3 = ax[0, 2].imshow(sim[9], interpolation="none", cmap=cm.viridis, vmin=0, vmax=1)
+    ax[0, 2].set_title("Output Layer")
+    divider = make_axes_locatable(ax[0, 2])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im3, cax=cax, shrink=0.8)
+
+    im5 = ax[1, 0].imshow(sim[4], interpolation="none", cmap=cm.viridis, vmin=0 )
+    ax[1, 0].set_title("AHL 1")
+    divider = make_axes_locatable(ax[1, 0])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im5, cax=cax, shrink=0.8)
+
+    im5 = ax[1, 1].imshow(sim[8], interpolation="none", cmap=cm.viridis, vmin=0)
+    ax[1, 1].set_title("AHL 2")
+    divider = make_axes_locatable(ax[1, 1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im5, cax=cax, shrink=0.8)
+
+    im6 = ax[1, 2].imshow(sim[6], interpolation="none", cmap=cm.viridis, vmin=0)
+    ax[1, 2].set_title("GFP")
+    divider = make_axes_locatable(ax[1, 2])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im6, cax=cax, shrink=0.8)
+
+    im7 = ax[2, 0].imshow(sim[2], interpolation="none", cmap=cm.viridis, vmin=0, vmax=100)
+    ax[2, 0].set_title("Nutrients")
+    divider = make_axes_locatable(ax[2, 0])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    f.colorbar(im7, cax=cax, shrink=0.8)
+
+    im7 = ax[2, 1].imshow(sim[1], interpolation="none", cmap=cm.viridis, vmin=0)
+    ax[2, 1].set_title("Arabinose")
+    divider = make_axes_locatable(ax[2, 1])
     cax = divider.append_axes("right", size="5%", pad=0.05)
     f.colorbar(im7, cax=cax, shrink=0.8)
 
