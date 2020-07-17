@@ -59,6 +59,8 @@ def model_small(t, U_flat, shape):
                            gfp.flatten()) ) )
 
 
+
+
 w = 0.75  # dx, dy #TODO: this should probably be an argument to model small so it can be set in the same place as n_rows, n_cols
 def run_cross_setup():
     # This is Luca's orginal function simulating a single setup of the form:
