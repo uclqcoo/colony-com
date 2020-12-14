@@ -14,7 +14,7 @@ def main():
     Da = 0.03
     rho_A = 0.1       # production rate of AHL
 
-    environment_size = (125, 85)
+    environment_size = (20, 20)
     plate = Plate(environment_size)
 
     ## add nutrient to the plate
@@ -30,7 +30,7 @@ def main():
 
     ## add receiver strain to the plate
     U_R = np.zeros(environment_size)
-    for i in np.linspace(10, 70, 8):
+    for i in np.linspace(1, 9, 8):
         U_R[int(i), int(i)] = 0.001
     R = Species("R", U_R)
     def R_behaviour(species, params):
@@ -58,15 +58,18 @@ def main():
     plate.add_species(A)
 
     plate.plot_plate()
+    print("plotted first figure")
 
     ## run the experiment
     params = (D, rho_n, Dc, rc, w, rho_A, Da)
     sim = plate.run(t_final = 50*60,
-                    dt = .1,
+                    dt = 1.,
                     params = params)
+    print("run simulation")
 
     ## plotting
-    tp = np.arange(0, 50, 4)
-    plate.plot_simulation(sim, tp)
+    plate.plot_simulation(sim, 10)
+
+    print("final plot")
 
 main()

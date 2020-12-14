@@ -67,20 +67,22 @@ class Plate:
         return sim_ivp
 
     def plot_simulation(self, sim, timepoints):
-        for tp in timepoints:
+        tps = np.linspace(0, sim.shape[3] - 1, timepoints)
+        for tp in tps:
+            tp = int(tp)
             fig, axs = plt.subplots(int(np.ceil(len(self.species) / 3)), 3, sharex='all', sharey='all')
 
             for idx, (ax, s) in enumerate(zip(axs.flatten(), self.species)):
             # for idx, s in enumerate(self.species):
-                im = ax.imshow(sim[idx, :, :, tp*600], interpolation="none",
+                im = ax.imshow(sim[idx, :, :, tp], interpolation="none",
                                      cmap=cm.viridis, vmin=0,
                                vmax=np.max(sim[idx, :, :, :]))
-                ax.set_title(s.get_name() + ' hour: ' + str(tp))
+                ax.set_title(s.get_name() + ' timepoint: ' + str(tp))
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 fig.colorbar(im, cax=cax, shrink=0.8)
 
-            fig.savefig('fig_hour_' + str(tp) +'.pdf')
+            fig.savefig('fig_timepoint_' + str(tp) +'.pdf')
             fig.show()
 
     def plot_plate(self):
