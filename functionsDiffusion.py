@@ -27,11 +27,10 @@ kd = 17.8
 n = 1.75
 min =  4230
 max = 54096
+
 def hill_AHL(conc, n, kd, min, max):
     # get rid of the very small negatvie values
     conc[conc<0] = 0
-
-
     h = (min + (max-min)*(conc**n/(kd**n + conc**n)))/max
 
     return h
@@ -178,7 +177,7 @@ def get_vertex_coordinates(vertex_numbers, n_rows, n_cols):
             these use matrix indexing, in the format (row, col) starting from the top left of the grid
     '''
 
-    vertex_coordinates = np.hstack((vertex_numbers // n_rows, vertex_numbers % n_cols))
+    vertex_coordinates = np.hstack((vertex_numbers // n_cols, vertex_numbers % n_rows))
 
     return vertex_coordinates
 

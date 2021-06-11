@@ -1,10 +1,8 @@
 from functionsDiffusion import *
 
-
 '''
 Demo of the simulations in mainDiffusion.py using the new functions
 '''
-
 
 # fixed global parameters from Doong et. al. 2017
 x_s       = 20              # synthase production rate(au/min)
@@ -48,7 +46,7 @@ def model_small(t, U_flat, shape):
     c6        = D_a * c6_ficks + (x_a * U_grid[0]) - rho * U_grid[4]
     arabinose = D * arabinose_ficks
     n         = D * n_ficks - rho_n * N * (U_grid[3] + U_grid[5])
-    gfp       = x_g * N * hill(U_grid[4], lambda_a, K_a) * U_grid[5]
+    gfp       = x_g * N * hill_AHL(U_grid[4], lambda_a, K_a, min, max) * U_grid[5]
 
     return(np.concatenate((LuxI.flatten(),
                            arabinose.flatten(),

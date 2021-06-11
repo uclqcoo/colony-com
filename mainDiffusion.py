@@ -16,6 +16,11 @@ rho       = 5 * 0.001
 lambda_n  = 2.0
 K_n       = 80
 
+kd = 17.8
+n = 1.75
+min =  4230
+max = 54096
+
 def model_small(t, U_flat, shape):
     U_grid = U_flat.reshape(shape)
 
