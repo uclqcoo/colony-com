@@ -65,7 +65,7 @@ def main():
                     params = params)
 
     ## plotting
-    tp = np.arange(0, 18, 2)
+    tp = np.arange(0, 22*60, 2*60)
     plate.plot_simulation(sim, tp)
 
 main()

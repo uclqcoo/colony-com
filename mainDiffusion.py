@@ -381,7 +381,7 @@ def make_dist_plots():
     
 
 def main():
-    run_cross_setup()
+    # run_cross_setup()
 
     run_simple_setup()
 

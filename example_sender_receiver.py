@@ -29,12 +29,13 @@ def main():
     plate.add_species(N)
 
     ## add receiver strain to the plate
-    U_R = np.zeros(environment_size)
-    for i in np.linspace(5, 45, 9):
-        for j in np.linspace(5, 45, 9):
-            if (i == 25) & (j == 25):
-                continue
-            U_R[int(i), int(j)] = 0.001
+    # U_R = np.zeros(environment_size)
+    # for i in np.linspace(5, 45, 9):
+    #     for j in np.linspace(5, 45, 9):
+    #         if (i == 25) & (j == 25):
+    #             continue
+    #         U_R[int(i), int(j)] = 0.001
+    U_R = np.ones(environment_size) * 0.001
     R = Species("R", U_R)
     def R_behaviour(species, params):
         ## unpack params
@@ -80,12 +81,12 @@ def main():
 
     ## run the experiment
     params = (D, rho_n, Dc, rc, w, rho_A, Da)
-    sim = plate.run(t_final = 28*60,
-                    dt = .1,
+    sim = plate.run(t_final = 100*60,
+                    dt = 1,
                     params = params)
 
     ## plotting
-    tp = np.arange(0, 28, 4)
+    tp = np.arange(0, 100*60, 10*60)
     plate.plot_simulation(sim, tp)
 
 main()

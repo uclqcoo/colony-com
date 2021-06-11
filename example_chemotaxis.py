@@ -28,7 +28,7 @@ def main():
     N.set_behaviour(N_behaviour)
     plate.add_species(N)
 
-    ## add receiver strain to the plate
+    ## add motile strain to the plate
     U_R = np.zeros(environment_size)
     for i in np.linspace(1, 9, 8):
         U_R[int(i), int(i)] = 0.001
@@ -63,7 +63,7 @@ def main():
     ## run the experiment
     params = (D, rho_n, Dc, rc, w, rho_A, Da)
     sim = plate.run(t_final = 50*60,
-                    dt = 1.,
+                    dt = 0.1,
                     params = params)
     print("run simulation")
 
