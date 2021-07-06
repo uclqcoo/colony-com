@@ -48,7 +48,7 @@ class Plate:
             behaviour_dict[s.get_name()] = s.behaviour
 
         for idx, s in enumerate(self.species):
-            dU[idx] = behaviour_dict[s.get_name()](species_dict, params)
+            dU[idx] = behaviour_dict[s.get_name()](t, species_dict, params)
 
         return dU.flatten()
 
@@ -66,17 +66,21 @@ class Plate:
 
         return sim_ivp
 
-    def plot_simulation(self, sim, timepoints):
+    def plot_simulation(self, sim, timepoints, scale):
         tps = np.linspace(0, sim.shape[3] - 1, timepoints)
         for tp in tps:
             tp = int(tp)
             fig, axs = plt.subplots(int(np.ceil(len(self.species) / 3)), 3, sharex='all', sharey='all')
 
             for idx, (ax, s) in enumerate(zip(axs.flatten(), self.species)):
-            # for idx, s in enumerate(self.species):
-                im = ax.imshow(sim[idx, :, :, tp], interpolation="none",
-                                     cmap=cm.viridis, vmin=0,
-                               vmax=np.max(sim[idx, :, :, :]))
+                if scale == "log10":
+                    im = ax.imshow(np.log10(sim[idx, :, :, tp]), interpolation="none",
+                                         cmap=cm.viridis, vmin=np.min(np.log10(sim[idx, :, :, :])),
+                                   vmax=np.max(np.log10(sim[idx, :, :, :])))
+                elif scale == "linear":
+                    im = ax.imshow(sim[idx, :, :, tp], interpolation="none",
+                                   cmap=cm.viridis, vmin=0,
+                                   vmax=np.max(sim[idx, :, :, :]))
 
                 ax.set_title(s.get_name() + ' hour: ' + str(tp/60))
 
