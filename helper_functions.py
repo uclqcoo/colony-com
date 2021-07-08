@@ -9,12 +9,14 @@ def leaky_hill(s, K, lam, min, max):
     h = (max - min) * s ** lam / (K ** lam + s ** lam) + min
     return h
 
+
 def leaky_inverse_hill(s, K, lam, min, max):
     # get rid of the very small negative values
     s[s < 0] = 0
 
     h = (max - min) * K ** lam / (K ** lam + s ** lam) + min
     return h
+
 
 def hill(s, K, lam):
     s[s < 0] = 0
@@ -24,6 +26,7 @@ def hill(s, K, lam):
 
 def ficks(s, w):
     return(laplace(s) / np.power(w, 2))
+
 
 def get_vertex_coordinates(vertex_numbers, n_rows, n_cols):
     '''
@@ -41,6 +44,7 @@ def get_vertex_coordinates(vertex_numbers, n_rows, n_cols):
     vertex_coordinates = np.hstack((vertex_numbers // n_rows, vertex_numbers % n_cols))
 
     return vertex_coordinates
+
 
 def get_vertex_positions(vertex_numbers, n_rows, n_cols, w):
     '''
