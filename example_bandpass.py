@@ -18,19 +18,21 @@ def main():
     # environment_size = (8, 12)
     # w = 9
 
+    ## experimental parameters
+    D_A = 1e-4 / w ** 2  # mm^2 per min ***** IPTG DIFFUSION RATE
+    T7_0 = 1  # ***** a.u. initial T7RNAP concentration per cell
+    R_0 = 1  # ***** a.u. initial REPRESSOR concentration per cell
+    GFP_0 = 1  # a.u. ***** initial GFP concentration per cell
+    A_0 = 10e-3 * 1e-6 * 6.022e23  # ***** initial inducer concentration - concentration * volume * Avogadro
+    inducer_positions = [[8, 8], [11, 13]]  # positions specified on 384 well plate [[row], [col]]
+    X_0 = 0.3 * 1e8 * 10 / (environment_size[0] * environment_size[1])  # ***** initial cell count per grid position - 0.3 OD in 10mL agar ~ 0.3 * 1e8 * 10 / (environment size)
+    N_0 = 0.04 / (environment_size[0] * environment_size[1])  # g ***** initial nutrient per grid position - 0.4% = 0.4g per 100 mL = 0.04 / (environment_size)
+
     ## growth parameters (currently Monod growth but can be replaced with fitted growth curves)
     D_N = 1e-4 / w**2  # mm^2 per min  ***** nutrient diffusion rate
     mu_max = 0.02  # per min  *****  max growth rate
     K_mu = 1  # g  ***** growth Michaelis-Menten coeffecient
     gamma = 1E12  # cells per g  ***** yield
-
-    ## experimental parameters
-    D_A = 1e-4 / w**2  # mm^2 per min ***** IPTG DIFFUSION RATE
-    T7_0 = 1   # ***** a.u. initial T7RNAP concentration per cell
-    R_0 = 1   # ***** a.u. initial REPRESSOR concentration per cell
-    GFP_0 = 1  # a.u. ***** initial GFP concentration per cell
-    X_0 = 0.3 * 1e8 * 10 / (environment_size[0] * environment_size[1])  # ***** initial cell count per grid position - 0.3 OD in 10mL agar ~ 0.3 * 1e8 * 10 / (environment size)
-    N_0 = 0.04 / (environment_size[0] * environment_size[1])  # g ***** initial nutrient per grid position - 0.4% = 0.4g per 100 mL = 0.04 / (environment_size)
 
     ## From Zong paper
     alpha_T = 6223  #
@@ -84,13 +86,10 @@ def main():
     plate.add_species(strain)
 
     ## add IPTG to plate
-    inducer_num = 10e-3 * 1e-6 * 6.022e23  # concentration * volume * Avogadro
-
-    inducer_position = [[8, 8], [11, 13]]  # positions specified on 384 well plate [[row], [col]]
-    inducer_position = [[int(j * (4.5/w)) for j in i] for i in inducer_position]  # convert position to specified dims
+    inducer_position = [[int(j * (4.5/w)) for j in i] for i in inducer_positions]  # convert position to specified dims
 
     U_A = np.ones(environment_size)
-    U_A[inducer_position[0], inducer_position[1]] = inducer_num
+    U_A[inducer_position[0], inducer_position[1]] = A_0
 
     A = Species("A", U_A)
     def A_behaviour(t, species, params):
@@ -137,28 +136,29 @@ def main():
                     params = params)
 
     ## plotting
-    # plate.plot_simulation(sim, 3, 'log10', 2)
+    plate.plot_simulation(sim, 3, 'log10', 2)
 
     # calculate total GFP (rather than GFP per cell) = X * GFP
-    plate_view = sim[1] * sim[3]
+    # plate_view = sim[1] * sim[3]
+    #
+    # import matplotlib.pyplot as plt
+    # from matplotlib import cm
+    #
+    # timpoints = 10
+    # fig, axs = plt.subplots(timpoints, sharex='all', sharey='all')
+    #
+    # tps = np.linspace(0, plate_view.shape[2] - 1, timpoints)
+    # for idx, ax in enumerate(axs.flatten()):
+    #     im = ax.imshow(plate_view[:, :, int(tps[idx])],
+    #                    interpolation="none",
+    #                    cmap=cm.gist_gray,
+    #                    vmin=np.min(plate_view),
+    #                    vmax=np.max(plate_view))
+    #
+    #     ax.set_ylabel(int(tps[idx]))
+    # fig.show()
 
-    import matplotlib.pyplot as plt
-    from matplotlib import cm
-
-    timpoints = 10
-    fig, axs = plt.subplots(timpoints, sharex='all', sharey='all')
-
-    tps = np.linspace(0, plate_view.shape[2] - 1, timpoints)
-    for idx, ax in enumerate(axs.flatten()):
-        im = ax.imshow(plate_view[:, :, int(tps[idx])],
-                       interpolation="none",
-                       cmap=cm.gist_gray,
-                       vmin=np.min(plate_view),
-                       vmax=np.max(plate_view))
-
-        ax.set_ylabel(int(tps[idx]))
-    fig.show()
-
+    ## make video of GFP over time
     # import matplotlib.animation as animation
     # fig, ax = plt.subplots()
     # ims = []
