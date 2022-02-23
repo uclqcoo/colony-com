@@ -20,7 +20,7 @@ def main():
     ## add nutrient to the plate
     U_N = np.ones(environment_size)
     N = Species("N", U_N)
-    def N_behaviour(species, params):
+    def N_behaviour(t, species, params):
         ## unpack params
         D, rho_n, Dc, rc, w = params
         n = D * helper_functions.ficks(species['N'], w) - rho_n * species['N'] * species['X']

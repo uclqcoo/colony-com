@@ -1,4 +1,5 @@
-from scipy.ndimage import laplace
+from scipy.ndimage import laplace  # scipy.ndimage - multi dimensional image processing, laplace transformation -
+# tool for solving differential equations
 import numpy as np
 
 
@@ -20,13 +21,20 @@ def leaky_inverse_hill(s, K, lam, min, max):
 
 def hill(s, K, lam):
     s[s < 0] = 0
-    h = s**lam / (K**lam + s**lam)
-    return(h)
+    h = s ** lam / (K ** lam + s ** lam)
+    return (h)
+# sigmoidal binding curve
 
 
 def ficks(s, w):
-    return(laplace(s) / np.power(w, 2))
+    return (laplace(s) / np.power(w, 2))
+# Fick's law states that the rate of diffusion of a substance across unit area (such as a surface or membrane) is
+# proportional to the concentration gradient.
 
+
+def monod(s1,s2, mumax, Kv):
+    m = mumax*(s2/(s2*Kv))*s1
+    return m
 
 def get_vertex_coordinates(vertex_numbers, n_rows, n_cols):
     '''
@@ -42,6 +50,7 @@ def get_vertex_coordinates(vertex_numbers, n_rows, n_cols):
     '''
 
     vertex_coordinates = np.hstack((vertex_numbers // n_rows, vertex_numbers % n_cols))
+    # hstack stacks arrays in sequence horizontally (column wise)
 
     return vertex_coordinates
 
@@ -58,7 +67,6 @@ def get_vertex_positions(vertex_numbers, n_rows, n_cols, w):
         vertex_positions: the positions on the finite difference grid of the supplied vertex number (in mm from the top left of the grid):
             [[r0, c0]; [r1,c1]; ... [rn,cn]]
     '''
-
 
     vertex_coordinates = get_vertex_coordinates(vertex_numbers, n_rows, n_cols)
 
@@ -82,7 +90,6 @@ def assign_vertices(vertex_positions, node_positions, node_radius):
      NOTE: this assigns position based on real life position, not the grid coordinates i.e the distance in mm
     '''
 
-
     indicators = np.zeros(len(vertex_positions))
 
     if node_positions == []:
@@ -98,9 +105,8 @@ def assign_vertices(vertex_positions, node_positions, node_radius):
 
     indicators = np.array(indicators, dtype=np.int32)
 
-
-
     return vertex_numbers, indicators
+
 
 # this is the only one you really need to use
 def get_node_coordinates(node_positions, node_radius, n_rows, n_cols, w):
@@ -116,7 +122,6 @@ def get_node_coordinates(node_positions, node_radius, n_rows, n_cols, w):
 
         NOTE: this assigns position based on real life position, not the grid coordinates i.e the distance in mm
        '''
-
 
     # use the individual functions if repeating these two lines for each node type is too slow
     all_vertex_numbers = np.arange(n_rows * n_cols).reshape(-1, 1)  # reshpae to colum vector
