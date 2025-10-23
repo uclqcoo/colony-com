@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))) #needed to add this becuase couldn't find files directly?
 from plate import Plate
 from species import Species
 import numpy as np
@@ -8,34 +11,35 @@ def main():
     ## experimental parameters
     w = 0.5                     # sets spatial resolution of grid i.e. what size each simulation grid square represents (mm)
 
-    D_p = 500 * (6 * 10**-5)    # max diffusion (chemotaxis) rate of Bacteria B (um2/s)
-    D_p0 = 10 * (6 * 10**-5)    # min diffusion (chemotaxis) rate of Bacteria B (um2/s)
-    D_h = 400 * (6 * 10**-5)    # diffusion rate of AHL A (um2/s)
-    D_n = 800 * (6 * 10**-5)    # diffusion rate of nutrient N (um2/s)
+    D_B_max = 500 * (6 * 10**-5)    # max diffusion (chemotaxis) rate of Bacteria B (um2/s)
+    D_B_min = 10 * (6 * 10**-5)     # min diffusion (chemotaxis) rate of Bacteria B (um2/s)
+    D_A = 400 * (6 * 10**-5)        # diffusion rate of AHL A (um2/s)
+    D_N = 800 * (6 * 10**-5)        # diffusion rate of nutrient N (um2/s)
 
-    gamma = 0.7 / 60            # max growth rate of Bacteria B (hr-1)
-    beta = 1.04 / 60            # degradation rate of AHL ()
-    m = 20                      # hill coefficient ()
-    n_0 = 15E8                  # initial nutrient concentration (umol/L)
-    k_n = 1                     # inverse yield coefficient of Bacteria B on nutrient ()
-    K_n = 1E9                   # nutrient concentration for half-maximal growth ()
-    K_h = 4E8                   # AHL concentration for half-maximal repression of motility ()
-    alpha = beta                # AHL production rate
+    g_B_max = 0.7 / 60               # max growth rate of Bacteria B (hr-1)
+    q_A = 1.04 / 60                  # degradation rate of AHL ()
+    lam = 20                          # hill coefficient ()
+    N_0 = 15E8                       # initial nutrient concentration (umol/L)
+    gamma = 1                        # yield coefficient of Bacteria B on nutrient ()
+    k_n = 1/gamma                    # inverse yield coefficient of Bacteria B on nutrient ()
+    K_N = 1E9                         # nutrient concentration for half-maximal growth ()
+    K_A = 4E8                         # AHL concentration for half-maximal repression of motility ()
+    p_A = q_A                        # AHL production rate
 
-    dim_mm = 90                 # size of environment (mm)
-    dim = int(dim_mm / w)       # size of environment (in grid squares)
-    environment_size = (dim, dim) # make environment square
+    dim_mm = 90                        # size of environment (mm)
+    dim = int(dim_mm / w)              # size of environment (in grid squares)
+    environment_size = (dim, dim)      # make environment square
     plate = Plate(environment_size)
 
     ## add nutrient to the plate
-    U_n = np.ones(environment_size) * n_0 #creates uniform distribution of nutrient, value is n_0 at each grid square
+    U_n = np.ones(environment_size) * N_0 #creates uniform distribution of nutrient, value is N_0 at each grid square
     n = Species("n", U_n) # creates nutrient species
     # define behaviour of nutrient
     def n_behaviour(t, species, params):
         ## unpack params
-        w, D_p, D_p0, D_h, D_n, gamma, beta, m, n_0, k_n, K_n, K_h, alpha = params
+        w, D_B_max, D_B_min, D_A, D_N, g_B_max, q_A, lam, N_0, k_n, K_N, K_A, p_A = params
         ## define behaviour
-        dn = D_n * hf.ficks(species['n'], w) - (k_n * gamma * species['n']**2 * species['p']) / (species['n']**2 + K_n**2)
+        dn = D_N * hf.ficks(species['n'], w) - (k_n * g_B_max * species['n']**2 * species['p']) / (species['n']**2 + K_N**2)
         return dn
     n.set_behaviour(n_behaviour)
     plate.add_species(n)
@@ -56,11 +60,11 @@ def main():
     # define behaviour of bacteria
     def p_behaviour(t, species, params):
         ## unpack params
-        w, D_p, D_p0, D_h, D_n, gamma, beta, m, n_0, k_n, K_n, K_h, alpha = params
+        w, D_B_max, D_B_min, D_A, D_N, g_B_max, q_A, lam, N_0, k_n, K_N, K_A, p_A = params
         ## define behaviour
-        mu_h = (D_p + D_p0 * (species['h'] / K_h)**m) / (1 + (species['h'] / K_h)**m)
+        mu_h = (D_B_max + D_B_min * (species['h'] / K_A)**lam) / (1 + (species['h'] / K_A)**lam)
         #hill_B = hf.leak_hill(species['A'], K_A, lam, D_B_min, D_B_max) # alternative way to define hill function
-        dp = hf.ficks(mu_h * species['p'], w) + (gamma * species['n']**2 * species['p']) / (species['n']**2 + K_n**2)
+        dp = hf.ficks(mu_h * species['p'], w) + (g_B_max * species['n']**2 * species['p']) / (species['n']**2 + K_N**2)
         return dp
     p.set_behaviour(p_behaviour)
     plate.add_species(p)
@@ -71,9 +75,9 @@ def main():
     # define behaviour of AHL
     def h_behaviour(t, species, params):
         ## unpack params
-        w, D_p, D_p0, D_h, D_n, gamma, beta, m, n_0, k_n, K_n, K_h, alpha = params
+        w, D_B_max, D_B_min, D_A, D_N, g_B_max, q_A, lam, N_0, k_n, K_N, K_h, p_A = params
         ## define behaviour
-        dh = D_h * hf.ficks(species['h'], w) + alpha * species['p'] - beta * species['h']
+        dh = D_A * hf.ficks(species['h'], w) + p_A * species['p'] - q_A * species['h']
         return dh
     h.set_behaviour(h_behaviour)
     plate.add_species(h)
@@ -81,7 +85,7 @@ def main():
     # plate.plot_plate()    #uncomment to see initial conditions
 
     ## run the experiment
-    params = (w, D_p, D_p0, D_h, D_n, gamma, beta, m, n_0, k_n, K_n, K_h, alpha)
+    params = (w, D_B_max, D_B_min, D_A, D_N, g_B_max, q_A, lam, N_0, k_n, K_N, K_A, p_A)
     #run simulation
     sim = plate.run(t_final=2000,
                     dt=10,
